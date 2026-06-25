@@ -1,0 +1,26 @@
+tebex:
+  secret-key: "YOUR_TEBEX_SECRET_KEY_HERE"
+  base-url: "https://plugin.tebex.io"
+
+cache:
+  refresh-interval: 10
+  payment-history-limit: 100
+
+goal:
+  enabled: true
+  target-amount: 500.0
+
+placeholders:
+  no-data: "N/A"
+  loading: "Loading..."
+  currency-format: "%.2f"
+  date-format: "dd/MM/yyyy"
+  datetime-format: "dd/MM/yyyy HH:mm"
+
+messages:
+  reload-success: "&aPlaceholderTebex reloaded successfully."
+  reload-failed: "&cFailed to reload PlaceholderTebex."
+  no-permission: "&cYou don't have permission to do that."
+  cache-cleared: "&aCache cleared successfully."
+  fetching: "&eForcing Tebex data refresh..."
+  fetched: "&aData refreshed successfully."
