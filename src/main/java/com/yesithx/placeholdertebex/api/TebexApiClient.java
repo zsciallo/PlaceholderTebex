@@ -72,7 +72,6 @@ public class TebexApiClient {
         List<Donor> donors = new ArrayList<>();
         try {
             String json = fetch("/payments?limit=" + limit);
-            plugin.getLogger().info("[PlaceholderTebex] Payments raw response: " + json.substring(0, Math.min(300, json.length())));
 
             JsonArray data = null;
             try {
@@ -98,7 +97,7 @@ public class TebexApiClient {
             for (JsonElement el : data) {
                 JsonObject payment = el.getAsJsonObject();
 
-                String username = getStringSafe(payment, "player", "username");
+                String username = getStringSafe(payment, "player", "name");
                 if (username.equals(plugin.getConfigManager().getNoDataPlaceholder())) {
                     username = getStringSafe(payment, "username");
                 }
@@ -131,7 +130,6 @@ public class TebexApiClient {
                 donors.add(new Donor(username, amount, currency, date, packageName, transactionId, email));
             }
 
-            plugin.getLogger().info("[PlaceholderTebex] Loaded " + donors.size() + " payments successfully.");
         } catch (Exception e) {
             plugin.getLogger().severe("[PlaceholderTebex] Failed to fetch payments: " + e.getMessage());
             e.printStackTrace();

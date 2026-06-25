@@ -65,8 +65,9 @@ public class CacheManager {
             monthlyDonors = buildMonthlyDonors(payments);
 
             loaded = true;
+            plugin.getLogger().info("\u00a7aData successfully updated.");
         } catch (Exception e) {
-            plugin.getLogger().warning("[PlaceholderTebex] Cache refresh failed: " + e.getMessage());
+            plugin.getLogger().warning("\u00a7cError updating Tebex data: " + e.getMessage());
         }
     }
 
