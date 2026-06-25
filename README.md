@@ -1,108 +1,113 @@
-# 💰 PlaceholderTebex
+# PlaceholderTebex
 
-> Real-time Tebex store data exposed as PlaceholderAPI variables — top donors, last donations, goals, stats and more. Fully configurable via `config.yml`.
+**Real-time Tebex store data as PlaceholderAPI variables.**
+Top donors · Monthly goals · Live stats · Fully configurable.
+
+[![Version](https://img.shields.io/badge/version-1.0.1-gold?style=flat-square)](https://github.com/YesithTK/PlaceholderTebex)
+[![Paper](https://img.shields.io/badge/Paper-1.20--1.21-white?style=flat-square)](https://papermc.io)
+[![PlaceholderAPI](https://img.shields.io/badge/PlaceholderAPI-2.11%2B-white?style=flat-square)](https://www.spigotmc.org/resources/placeholderapi.6245/)
+[![Java](https://img.shields.io/badge/Java-17%2B-white?style=flat-square)](https://adoptium.net)
+[![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red?style=flat-square)](#license)
 
 ---
 
-## 📋 Requirements
+## Overview
+
+PlaceholderTebex bridges your **Tebex plugin** and **PlaceholderAPI**, exposing live donation data as placeholders usable anywhere — holograms, scoreboards, menus, signs, chat, and more.
+
+Data is fetched asynchronously and cached in memory. Every placeholder resolves instantly with zero per-request API calls, keeping your server fast and your Tebex rate limits safe.
+
+---
+
+## Requirements
 
 | Dependency | Version |
-|---|---|
+| --- | --- |
 | Paper / Spigot | 1.20.x — 1.21.x |
-| PlaceholderAPI | 2.11.x+ |
-| Java | 17+ |
+| [Tebex Plugin](https://www.spigotmc.org/resources/tebex-formerly-buycraft.336/) | Latest |
+| PlaceholderAPI | 2.11.x or higher |
+| Java | 17 or higher |
 
 ---
 
-## ⚙️ Installation
+## Installation
 
-1. Drop `PlaceholderTebex.jar` into your `/plugins` folder.
-2. Start the server once to generate `config.yml`.
-3. Open `plugins/PlaceholderTebex/config.yml` and set your API key.
-4. Run `/ptebex reload`.
+1. Make sure the **Tebex plugin** is already installed and working on your server.
+2. Place `PlaceholderTebex.jar` in your `/plugins` folder.
+3. Start the server once to generate the config.
+4. Open `plugins/Tebex/config.yml` and copy the value of `secret`.
+5. Paste it into `plugins/PlaceholderTebex/config.yml` under `tebex.secret-key`.
+6. Run `/ptebex reload`.
 
-### Where to get your Tebex API Key
-
-1. Go to [creator.tebex.io](https://creator.tebex.io)
-2. Navigate to **Integrations** → **API Keys**
-3. Copy your **Private Key** (click Generate if empty)
-4. Paste it into `config.yml` under `tebex.secret-key`
-
-> ⚠️ Never share your Private Key publicly. It gives full access to your store.
+> **Warning:** Never share your secret key. It grants full access to your Tebex store.
 
 ---
 
-## 🔧 config.yml
+## Configuration
 
 ```yaml
 tebex:
-  secret-key: "YOUR_PRIVATE_KEY_HERE"
+  secret-key: "YOUR_TEBEX_SECRET_KEY"
   base-url: "https://plugin.tebex.io"
 
 cache:
-  refresh-interval: 10        # Minutes between Tebex API requests
-  payment-history-limit: 100  # How many past payments to load
+  refresh-interval: 10         # Minutes between Tebex API fetches
+  payment-history-limit: 100   # Number of past payments to load
 
 goal:
   enabled: true
-  target-amount: 500.0        # Monthly donation goal
+  target-amount: 500.0         # Monthly donation target
 
 placeholders:
-  no-data: "N/A"              # Shown when data isn't available
-  loading: "Loading..."       # Shown while cache is warming up
-  currency-format: "%.2f"     # Java format string for amounts
+  no-data: "N/A"
+  loading: "Loading..."
+  currency-format: "%.2f"
   date-format: "dd/MM/yyyy"
   datetime-format: "dd/MM/yyyy HH:mm"
 ```
 
 ---
 
-## 📌 Placeholders
+## Placeholders
 
-### 🕐 Last Donor
+### Last Donor
 
-| Placeholder | Description |
-|---|---|
+| Placeholder | Returns |
+| --- | --- |
 | `%tebex_last_donor_name%` | Username of the last donor |
-| `%tebex_last_donor_amount%` | Amount they paid |
+| `%tebex_last_donor_amount%` | Amount paid |
 | `%tebex_last_donor_currency%` | Currency used |
 | `%tebex_last_donor_date%` | Date of the donation |
-| `%tebex_last_donor_datetime%` | Date + time of the donation |
-| `%tebex_last_donor_package%` | Package they purchased |
+| `%tebex_last_donor_datetime%` | Date and time of the donation |
+| `%tebex_last_donor_package%` | Package purchased |
 | `%tebex_last_donor_transaction%` | Transaction ID |
 
----
+### All-Time Top Donors — replace `N` with `1` through `10`
 
-### 🏆 All-Time Top Donors (1–10)
+| Placeholder | Returns |
+| --- | --- |
+| `%tebex_top_name_N%` | Username of top donor #N |
+| `%tebex_top_amount_N%` | Total amount donated by #N |
+| `%tebex_top_currency_N%` | Currency |
+| `%tebex_top_date_N%` | Date of last payment |
+| `%tebex_top_package_N%` | Package purchased |
 
-| Placeholder | Description |
-|---|---|
-| `%tebex_top_name_1%` → `_10%` | Username of top donor #N |
-| `%tebex_top_amount_1%` → `_10%` | Total amount donated by top #N |
-| `%tebex_top_currency_1%` → `_10%` | Currency of top donor #N |
-| `%tebex_top_date_1%` → `_10%` | Date of top donor #N's last payment |
-| `%tebex_top_package_1%` → `_10%` | Package purchased by top donor #N |
+### Monthly Top Donors — replace `N` with `1` through `10`
 
----
-
-### 📅 Monthly Top Donors (1–10)
-
-| Placeholder | Description |
-|---|---|
-| `%tebex_monthly_top_name_1%` → `_10%` | Username of monthly top #N |
-| `%tebex_monthly_top_amount_1%` → `_10%` | Amount donated this month by #N |
-| `%tebex_monthly_top_currency_1%` → `_10%` | Currency |
-| `%tebex_monthly_top_date_1%` → `_10%` | Date of donation |
-| `%tebex_monthly_top_package_1%` → `_10%` | Package purchased |
+| Placeholder | Returns |
+| --- | --- |
+| `%tebex_monthly_top_name_N%` | Username of monthly top #N |
+| `%tebex_monthly_top_amount_N%` | Amount donated this month |
+| `%tebex_monthly_top_currency_N%` | Currency |
+| `%tebex_monthly_top_date_N%` | Date of donation |
+| `%tebex_monthly_top_package_N%` | Package purchased |
 | `%tebex_monthly_total%` | Total donated this month |
-| `%tebex_monthly_transactions%` | Number of transactions this month |
+| `%tebex_monthly_transactions%` | Transaction count this month |
 
----
+### General Statistics
 
-### 📊 General Stats
-
-| Placeholder | Description |
-|---|---|
+| Placeholder | Returns |
+| --- | --- |
 | `%tebex_total_donated%` | All-time total donated |
 | `%tebex_total_donated_month%` | Total donated this month |
 | `%tebex_total_donated_today%` | Total donated today |
@@ -111,83 +116,89 @@ placeholders:
 | `%tebex_total_transactions_today%` | Transactions today |
 | `%tebex_unique_donors%` | Number of unique donors |
 
----
+### Donation Goal
 
-### 🎯 Donation Goal
-
-| Placeholder | Description |
-|---|---|
+| Placeholder | Returns |
+| --- | --- |
 | `%tebex_goal_target%` | Target amount set in config |
 | `%tebex_goal_current%` | Amount raised this month |
-| `%tebex_goal_remaining%` | How much is left to reach the goal |
-| `%tebex_goal_progress%` | Percentage with `%` symbol (e.g. `73.50%`) |
-| `%tebex_goal_progress_raw%` | Raw percentage number (e.g. `73.50`) |
-| `%tebex_goal_bar%` | Visual bar 20 chars (e.g. `▓▓▓▓▓▓▓▓░░░░░░░░░░░░`) |
-| `%tebex_goal_bar_10%` | Visual bar 10 chars |
+| `%tebex_goal_remaining%` | Amount remaining to reach the goal |
+| `%tebex_goal_progress%` | Percentage with symbol — e.g. `73.50%` |
+| `%tebex_goal_progress_raw%` | Raw number — e.g. `73.50` |
+| `%tebex_goal_bar%` | Visual progress bar, 20 characters |
+| `%tebex_goal_bar_10%` | Visual progress bar, 10 characters |
 | `%tebex_goal_reached%` | `true` or `false` |
 
----
+### Store Info
 
-### 🏪 Store Info
-
-| Placeholder | Description |
-|---|---|
-| `%tebex_store_name%` | Your store name |
-| `%tebex_store_currency%` | Store default currency |
+| Placeholder | Returns |
+| --- | --- |
+| `%tebex_store_name%` | Store name |
+| `%tebex_store_currency%` | Default currency |
 | `%tebex_store_domain%` | Store domain |
 
 ---
 
-## 💬 Commands
+## Usage Examples
 
-| Command | Description |
-|---|---|
-| `/ptebex reload` | Reload config and restart cache task |
-| `/ptebex refresh` | Force fetch fresh data from Tebex now |
-| `/ptebex clearcache` | Wipe all cached data |
-| `/ptebex info` | Show plugin status, donor count, goal info |
-
-**Permission:** `placeholdertebex.admin` (default: op)
-
----
-
-## 💡 Usage Examples
-
-**Hologram with top donors:**
+**Top donors hologram**
 ```
-&6&l TOP DONORS
-&e#1 &f%tebex_top_name_1% &7- &a$%tebex_top_amount_1%
-&e#2 &f%tebex_top_name_2% &7- &a$%tebex_top_amount_2%
-&e#3 &f%tebex_top_name_3% &7- &a$%tebex_top_amount_3%
+&6&lTOP DONORS
+&e#1 &f%tebex_top_name_1% &7— &a$%tebex_top_amount_1%
+&e#2 &f%tebex_top_name_2% &7— &a$%tebex_top_amount_2%
+&e#3 &f%tebex_top_name_3% &7— &a$%tebex_top_amount_3%
 ```
 
-**Monthly goal bar:**
+**Monthly goal scoreboard**
 ```
-&eDonation Goal: &f%tebex_goal_bar% &7%tebex_goal_progress%
+Goal: %tebex_goal_bar_10% %tebex_goal_progress%
 ```
 
-**Last donor board:**
+**Last donor sign**
 ```
-&eLast donation: &f%tebex_last_donor_name% &7» &a$%tebex_last_donor_amount%
-&7%tebex_last_donor_datetime%
+%tebex_last_donor_name% — $%tebex_last_donor_amount%
+%tebex_last_donor_datetime%
 ```
 
 ---
 
-## 🔄 How Cache Works
+## Commands
 
-PlaceholderTebex fetches data from Tebex on startup and then every N minutes (configurable). All placeholders are served from memory — no API call happens per placeholder request. This keeps your server fast and stays within Tebex API rate limits.
+| Command | Description | Permission |
+| --- | --- | --- |
+| `/ptebex reload` | Reload config and restart cache | `placeholdertebex.admin` |
+| `/ptebex refresh` | Force fetch fresh data from Tebex | `placeholdertebex.admin` |
+| `/ptebex clearcache` | Clear all cached data | `placeholdertebex.admin` |
+| `/ptebex info` | Show plugin status and stats | `placeholdertebex.admin` |
 
-Use `/ptebex refresh` to force an instant update at any time.
+Default permission: **op only.**
 
 ---
 
-## 📦 Source Code
+## Changelog
 
-GitHub: [github.com/YesithTK](https://github.com/YesithTK)
+### v1.0.1
+- Fixed player name field — now correctly reads `player.name` from Tebex API
+- Fixed JSON parsing — handles both array and wrapped `data` response formats
+- Fixed date parsing — supports multiple Tebex date formats
+- Improved error logging
+- Removed verbose debug logs
+
+### v1.0.0
+- Initial release
 
 ---
 
-## 💬 Support
+## Support
 
-Discord: **_onlynea**
+- **Discord:** `_onlynea`
+- **Spigot:** [PlaceholderTebex](https://www.spigotmc.org/resources/placeholdertebex.136478/)
+- **Issues:** [github.com/YesithTK/PlaceholderTebex/issues](https://github.com/YesithTK/PlaceholderTebex/issues)
+
+---
+
+## License
+
+© 2026 YesithX — All Rights Reserved.
+
+This plugin is provided free of charge for personal and server use. You may not copy, modify, decompile, resell, or redistribute this plugin or any part of its source code without explicit written permission from the author.
