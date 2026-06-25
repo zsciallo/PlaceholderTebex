@@ -19,8 +19,12 @@ import java.util.List;
 
 public class TebexApiClient {
 
-    private static final DateTimeFormatter TEBEX_DATE_FORMAT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+    private static final DateTimeFormatter[] TEBEX_DATE_FORMATS = {
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+    };
 
     private final PlaceholderTebex plugin;
 
@@ -47,7 +51,11 @@ public class TebexApiClient {
 
         int status = conn.getResponseCode();
         if (status != 200) {
-            throw new RuntimeException("Tebex API returned status: " + status);
+            BufferedReader errReader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+            StringBuilder errBody = new StringBuilder();
+            String errLine;
+            while ((errLine = errReader.readLine()) != null) errBody.append(errLine);
+            throw new RuntimeException("Tebex API status " + status + " - " + errBody);
         }
 
         StringBuilder sb = new StringBuilder();
@@ -64,24 +72,69 @@ public class TebexApiClient {
         List<Donor> donors = new ArrayList<>();
         try {
             String json = fetch("/payments?limit=" + limit);
-            JsonObject root = JsonParser.parseString(json).getAsJsonObject();
-            JsonArray data = root.getAsJsonArray("data");
+            plugin.getLogger().info("[PlaceholderTebex] Payments raw response: " + json.substring(0, Math.min(300, json.length())));
+
+            JsonArray data = null;
+            try {
+                data = JsonParser.parseString(json).getAsJsonArray();
+            } catch (Exception e1) {
+                try {
+                    JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+                    if (root.has("data")) {
+                        data = root.getAsJsonArray("data");
+                    } else if (root.has("payments")) {
+                        data = root.getAsJsonArray("payments");
+                    }
+                } catch (Exception e2) {
+                    plugin.getLogger().warning("[PlaceholderTebex] Could not parse payments response: " + e2.getMessage());
+                }
+            }
+
+            if (data == null) {
+                plugin.getLogger().warning("[PlaceholderTebex] No payment data found in response.");
+                return donors;
+            }
 
             for (JsonElement el : data) {
                 JsonObject payment = el.getAsJsonObject();
+
                 String username = getStringSafe(payment, "player", "username");
-                double amount = payment.has("amount") ? payment.get("amount").getAsDouble() : 0.0;
+                if (username.equals(plugin.getConfigManager().getNoDataPlaceholder())) {
+                    username = getStringSafe(payment, "username");
+                }
+                if (username.equals(plugin.getConfigManager().getNoDataPlaceholder())) {
+                    username = getStringSafe(payment, "name");
+                }
+
+                double amount = 0.0;
+                if (payment.has("amount")) amount = payment.get("amount").getAsDouble();
+                else if (payment.has("price")) amount = payment.get("price").getAsDouble();
+
                 String currency = getNestedStringSafe(payment, "currency", "iso_4217");
+                if (currency.equals(plugin.getConfigManager().getNoDataPlaceholder())) {
+                    currency = getStringSafe(payment, "currency");
+                }
+
                 String dateStr = getStringSafe(payment, "date");
+                if (dateStr.equals(plugin.getConfigManager().getNoDataPlaceholder())) {
+                    dateStr = getStringSafe(payment, "created_at");
+                }
                 LocalDateTime date = parseDateSafe(dateStr);
+
                 String packageName = getFirstPackageName(payment);
                 String transactionId = getStringSafe(payment, "transaction_id");
+                if (transactionId.equals(plugin.getConfigManager().getNoDataPlaceholder())) {
+                    transactionId = getStringSafe(payment, "txn_id");
+                }
                 String email = getStringSafe(payment, "email");
 
                 donors.add(new Donor(username, amount, currency, date, packageName, transactionId, email));
             }
+
+            plugin.getLogger().info("[PlaceholderTebex] Loaded " + donors.size() + " payments successfully.");
         } catch (Exception e) {
-            plugin.getLogger().warning("[PlaceholderTebex] Failed to fetch payments: " + e.getMessage());
+            plugin.getLogger().severe("[PlaceholderTebex] Failed to fetch payments: " + e.getMessage());
+            e.printStackTrace();
         }
         return donors;
     }
@@ -137,10 +190,14 @@ public class TebexApiClient {
     }
 
     private LocalDateTime parseDateSafe(String dateStr) {
-        try {
-            return LocalDateTime.parse(dateStr, TEBEX_DATE_FORMAT);
-        } catch (Exception e) {
+        if (dateStr == null || dateStr.equals(plugin.getConfigManager().getNoDataPlaceholder())) {
             return LocalDateTime.now();
         }
+        for (DateTimeFormatter fmt : TEBEX_DATE_FORMATS) {
+            try {
+                return LocalDateTime.parse(dateStr, fmt);
+            } catch (Exception ignored) {}
+        }
+        return LocalDateTime.now();
     }
 }
